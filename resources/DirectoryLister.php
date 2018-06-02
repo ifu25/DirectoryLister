@@ -208,7 +208,7 @@ class DirectoryLister {
                 $dirPath = is_null($dirPath) ? $dir : $dirPath . '/' .  $dir;
 
                 // Combine the base path and dir path
-                $link = $this->_appURL . '?dir=' . rawurlencode($dirPath);
+                $link = $this->_appURL . $dirPath . '/';
 
                 $breadcrumbsArray[] = array(
                     'link' => $link,
@@ -614,7 +614,7 @@ class DirectoryLister {
                         $directoryPath = implode('/', $pathArray);
 
                         if (!empty($directoryPath)) {
-                            $directoryPath = '?dir=' . rawurlencode($directoryPath);
+                            $directoryPath = $directoryPath; //?dir=xxx 转/xxx/
                         }
 
                         // Add file info to the array
