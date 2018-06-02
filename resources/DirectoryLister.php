@@ -262,12 +262,14 @@ class DirectoryLister {
      * @access public
      */
     public function getListedPath() {
-
+        // 标题将网址去掉，只保留目录
         // Build the path
         if ($this->_directory == '.') {
-            $path = $this->_appURL;
+          //$path = $this->_appURL;
+            $path = $this->_config['home_label'];
         } else {
-            $path = $this->_appURL . $this->_directory;
+          //$path = $this->_appURL . $this->_directory;
+            $path = $this->_directory;
         }
 
         // Return the path
@@ -383,6 +385,15 @@ class DirectoryLister {
      */
     public function getFileHash($filePath) {
 
+		// 因目录伪静态将链接地址改造，前面带上了/或/./
+		// 这里将前缀去掉，否则读不到文件
+		if(substr($filePath, 0, 3) === "/./"){
+        	$filePath = substr($filePath, 3, strlen($filePath));
+        }
+        else if(substr($filePath, 0, 1) === "/"){
+        	$filePath = substr($filePath, 1, strlen($filePath));
+        }
+        
         // Placeholder array
         $hashArray = array();
 
@@ -625,12 +636,25 @@ class DirectoryLister {
                         // Build the file path
                         $urlPath = implode('/', array_map('rawurlencode', explode('/', $relativePath)));
 
+                        //if (is_dir($relativePath)) {
+                        //    $urlPath = $this->containsIndex($relativePath) ? $relativePath : '?dir=' . $urlPath;
+                        //}
+                        
+                        // 将 ?dir=xxx 转换为 /xxx/ 的目录形式
                         if (is_dir($relativePath)) {
-                            $urlPath = $this->containsIndex($relativePath) ? $relativePath : '?dir=' . $urlPath;
+                            $urlPath = $this->containsIndex($relativePath) ? $relativePath : '/' . $urlPath . '/';
+                        }
+                        else{
+                        	$urlPath = '/' . $directory . '/' . $file;
                         }
 
-                        // Add the info to the main array
-                        $directoryArray[pathinfo($relativePath, PATHINFO_BASENAME)] = array(
+                        // Add the info to the main array 
+                        // 用preg_match替换pathinfo解决中文目录支持
+                        // 参考：http://www.hostloc.com/thread-299006-2-1.html
+                        preg_match('/\/([^\/]*)$/', $relativePath, $matches);
+                        $pathname = isset($matches[1]) ? $matches[1] : $relativePath;
+                        //$directoryArray[pathinfo($relativePath, PATHINFO_BASENAME)] = array(
+                        $directoryArray[$pathname] = array(
                             'file_path'  => $relativePath,
                             'url_path'   => $urlPath,
                             'file_size'  => is_dir($realPath) ? '-' : $this->getFileSize($realPath),
